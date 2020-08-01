@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hrm.notice.dao.INoticeDao">
+    <!--获取符合查询条件的公告数-->
+    <select id="selectNoticeCount" resultType="int">
+        select count(*) from notice_inf
+        <where>
+            <if test="title != null and title != ''">
+                title like "%" #{title} "%"
+            </if>
+            <if test="content != null and content != ''">
+                and content like "%" #{content} "%"
+            </if>
+        </where>
+    </select>
+
+    <!--获取符合查询条件的公告列表，分页查询-->
+    <select id="selectNotice" resultMap="noticeMap">
+        select * from notice_inf
+        <where>
+            <if test="notice.title != null and notice.title != ''">
+                title like "%" #{notice.title} "%"
+            </if>
+            <if test="notice.content != null and notice.content != ''">
+                and content like "%" #{notice.content} "%"
+            </if>
+        </where>
+        limit #{pageModel.firstLimitParam},#{pageModel.pageSize}
+    </select>
+
+    <resultMap id="noticeMap" type="Notice">
+        <id property="id" column="id"/>
+        <association property="user"
+                     column="user_id"
+                     javaType="User"
+                     select="selectUser"/>
+    </resultMap>
+
+    <select id="selectUser" resultType="User">
+        select * from user_inf where id=#{user_id}
+    </select>
+
+    <!--根据id获取公告信息-用于公告修改和预览-->
+    <select id="findNoticeById" resultMap="noticeMap">
+        select * from notice_inf where id=#{id}
+    </select>
+
+    <!--公告修改-->
+    <update id="updateNotice">
+        update notice_inf set title=#{title},content=#{content} where id=#{id}
+    </update>
+
+    <!--根据ids删除公告,动态SQL-->
+    <delete id="deleteNotice">
+        delete from notice_inf where id in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--添加公告，用户为当前登录用户-->
+    <insert id="addNotice">
+        insert into notice_inf(title,content,user_id) values(#{title},#{content},#{user.id})
+    </insert>
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hrm.document.dao.IDocumentDao">
+    <!--获取符合查询条件的文件数-->
+    <select id="selectDocumentCount" resultType="int">
+        select count(*) from document_inf
+        <where>
+            <if test="title != null and title != ''">
+                title like "%" #{title} "%"
+            </if>
+        </where>
+    </select>
+
+    <!--查询符合查询条件的文件列表-->
+    <select id="selectDocument" resultMap="documentMap">
+        select * from document_inf
+        <where>
+            <if test="title != null and title != ''">
+                title like "%" #{title} "%"
+            </if>
+        </where>
+        limit #{pageModel.firstLimitParam},#{pageModel.pageSize}
+    </select>
+
+    <resultMap id="documentMap" type="Document">
+        <id property="id" column="id"/>
+        <association property="user"
+                     javaType="User"
+                     select="selectUser"
+                     column="user_id"/>
+    </resultMap>
+
+    <select id="selectUser" resultType="User">
+        select * from user_inf where id=#{user_id}
+    </select>
+
+    <!--文档上传，向数据库添加文档信息-->
+    <insert id="addDocument">
+        insert into document_inf (title,filename,remark,user_id)
+        values(#{title},#{fileName},#{remark},#{user.id})
+    </insert>
+
+    <!--修改数据库中该文档信息-->
+    <update id="updateDocument">
+        update document_inf
+        <set>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="fileName != null and fileName != ''">
+                fileName = #{fileName},
+            </if>
+            <if test="remark != null and remark !=''">
+                remark =#{remark},
+            </if>
+        </set>
+         where id = #{id}
+    </update>
+
+    <!--根据id获取文件信息-文档删除AND修改-->
+    <select id="findDocumentById" resultMap="documentMap">
+        select * from document_inf where id=#{id}
+    </select>
+
+    <!--根据id删除文档信息-->
+    <delete id="deleteDocument">
+        delete from document_inf where id = #{id}
+    </delete>
+</mapper>

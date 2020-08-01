@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hrm.user.dao.IUserDao">
+    <select id="findByUserInfo" resultType="User">
+        select * from user_inf
+        where loginname=#{loginName} and PASSWORD=#{password} and STATUS>0
+    </select>
+
+    <!--插入用户信息-->
+    <insert id="insertUser">
+        insert into user_inf(loginname, PASSWORD, STATUS, createdate, username)
+        values(#{loginName},#{password},#{status},#{createDate},#{userName})
+    </insert>
+
+    <!--查询符合条件的记录数，动态查询-->
+    <select id="findUserCount" resultType="int">
+        select count(*) from user_inf
+        <where>
+            <if test="userName != null and userName != ''">
+                username like "%" #{userName} "%"
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--查询符合条件的用户信息，动态查询-->
+    <select id="selectUser" resultType="User">
+        select * from user_inf
+        <where>
+            <if test="user.userName != null and user.userName != ''">
+                username like "%" #{user.userName} "%"
+            </if>
+            <if test="user.status != null and user.status != ''">
+                and status = #{user.status}
+            </if>
+        </where>
+        limit #{pageModel.firstLimitParam},#{pageModel.pageSize}
+    </select>
+
+    <!--通过id查找用户，用于用户信息修改-->
+    <select id="findUserById" resultType="User">
+        select * from user_inf where id=#{id}
+    </select>
+
+    <!--修改用户-->
+    <update id="updateUser">
+        update user_inf set loginname=#{loginName},password=#{password},status=#{status},username=#{userName}
+        where id=#{id}
+    </update>
+
+    <!--删除用户，使用in，实现动态删除-->
+    <delete id="deleteUsers">
+        delete from user_inf where id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <!--查询用户名，判断用户名是否相同-->
+    <select id="findByLoginName" resultType="User">
+        select * from user_inf where loginname=#{loginName}
+    </select>
+</mapper>
